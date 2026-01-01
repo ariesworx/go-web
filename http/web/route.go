@@ -45,9 +45,9 @@ func matchRoute(segments []segment, path string) (map[string]string, bool) {
 
 	for i, seg := range segments {
 		if seg.isParam {
-			params[seg.name] = parts[i]
+			params[seg.name] = parts[i+1]
 		} else {
-			if seg.value != parts[i] {
+			if seg.value != parts[i+1] {
 				return nil, false
 			}
 		}
