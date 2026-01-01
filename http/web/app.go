@@ -17,9 +17,10 @@ type App struct {
 // NewApp creates a new App instance with the given configuration.
 func NewApp(shutdown chan os.Signal) *App {
 	return &App{
-		ServeMux: http.NewServeMux(),
-		shutdown: shutdown,
-		routes:   make([]*route, 0),
+		ServeMux:   http.NewServeMux(),
+		shutdown:   shutdown,
+		middleware: make(map[MwKey]MwHandler),
+		routes:     make([]*route, 0),
 	}
 }
 
@@ -36,12 +37,9 @@ func (a *App) Handle(method, path string, handler Handler, middlewareKeys ...MwK
 
 	h := chainMiddleware(mw, handler)
 	r := newRoute(method, path, h)
+	a.addRoute(r)
 
-	a.routes = append(a.routes, r)
-	a.sorted = false // Mark routes as unsorted.
-	pattern := method + " " + path
-
-	a.ServeMux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+	a.ServeMux.HandleFunc(pattern(r), func(w http.ResponseWriter, r *http.Request) {
 		// Check if routes are sorted; if not, sort them.
 		if !a.sorted {
 			a.sortRoutes()
@@ -72,6 +70,12 @@ func (a *App) Handle(method, path string, handler Handler, middlewareKeys ...MwK
 
 		http.NotFound(w, r)
 	})
+}
+
+// addRoute adds a new route to the application.
+func (a *App) addRoute(r *route) {
+	a.routes = append(a.routes, r)
+	a.sorted = false // Mark routes as unsorted.
 }
 
 // buildMiddleware constructs the middleware chain for a given handler and keys.

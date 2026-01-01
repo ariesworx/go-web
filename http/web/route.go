@@ -85,6 +85,16 @@ func parsePattern(path string) []segment {
 	return segments
 }
 
+// pattern returns the full pattern string for the route, including method if
+// specified.
+func pattern(route *route) string {
+	if route.method == "" {
+		return route.pattern
+	}
+
+	return route.method + " " + route.pattern
+}
+
 // routeScore calculates a specificity score for the route based on its segments
 // and method.
 func routeScore(route *route) int {

@@ -26,6 +26,12 @@ func TestNewApp(t *testing.T) {
 		t.Logf("%s\tShutdown channel set correctly", success)
 	}
 
+	if app.middleware == nil {
+		t.Errorf("%s\tExpected middleware map to be initialized", failure)
+	} else {
+		t.Logf("%s\tMiddleware map initialized", success)
+	}
+
 	if len(app.routes) != 0 {
 		t.Errorf("%s\tExpected routes slice to be initialized empty", failure)
 	} else {
