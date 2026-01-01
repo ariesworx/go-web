@@ -27,19 +27,13 @@ func NewApp(shutdown chan os.Signal) *App {
 // Handle registers a new handler function for the given method, pattern, handler, and
 // optional middleware keys.
 func (a *App) Handle(method, path string, handler Handler, middlewareKeys ...MwKey) {
-	// Create the middleware chain based on the provided keys.
-	mw := make([]MwHandler, 0, len(middlewareKeys))
-	for _, key := range middlewareKeys {
-		if m, ok := a.middleware[key]; ok && m != nil {
-			mw = append(mw, m)
-		}
-	}
+	// Build the middleware chain using the provided keys.
+	h := a.buildMiddleware(handler, middlewareKeys)
 
-	h := chainMiddleware(mw, handler)
 	r := newRoute(method, path, h)
 	a.addRoute(r)
 
-	a.ServeMux.HandleFunc(pattern(r), func(w http.ResponseWriter, r *http.Request) {
+	a.HandleFunc(pattern(r), func(w http.ResponseWriter, r *http.Request) {
 		// Check if routes are sorted; if not, sort them.
 		if !a.sorted {
 			a.sortRoutes()
